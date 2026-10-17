@@ -1,19 +1,27 @@
-class Arma {
-    constructor(private nombre: string, private danio: number) {}
+// --- CLASES DEL DOMINIO (POO - Agregación) ---
 
-    atacar(): string {
-        return `⚔️ Ataque con ${this.nombre}: ${this.danio} puntos de daño`;
+class Arma {
+    constructor(
+        private nombre: string,
+        private potencia: number
+    ) {}
+
+    ejecutarAtaque(): string {
+        return `Ataque canalizado con ${this.nombre} (Daño: ${this.potencia} pts)`;
     }
 
-    getDanio(): number { return this.danio; }
     getNombre(): string { return this.nombre; }
+    getPotencia(): number { return this.potencia; }
 }
 
 class Habilidad {
-    constructor(private nombre: string, private poder: number) {}
+    constructor(
+        private nombre: string,
+        private efecto: string
+    ) {}
 
-    usar(): string {
-        return `✨ Se utiliza ${this.nombre}: ${this.poder} puntos de poder`;
+    activar(): string {
+        return `Habilidad [${this.nombre}] activada: ${this.efecto}`;
     }
 
     getNombre(): string { return this.nombre; }
@@ -22,70 +30,102 @@ class Habilidad {
 class Personaje {
     constructor(
         private nombre: string,
-        private vida: number,
-        private arma: Arma,
-        private habilidad: Habilidad
+        private vidaActual: number,
+        private vidaMaxima: number,
+        private armaEquipada: Arma,
+        private habilidadActiva: Habilidad
     ) {}
 
     atacar(): string {
-        return `${this.nombre} ataca. ` + this.arma.atacar();
+        return `${this.nombre} ataca. ${this.armaEquipada.ejecutarAtaque()}`;
     }
 
     usarHabilidad(): string {
-        return `${this.nombre} utiliza una habilidad. ` + this.habilidad.usar();
+        return `${this.nombre} conjura. ✨ ${this.habilidadActiva.activar()}`;
     }
 
-    cambiarArma(nuevaArma: Arma): void {
-        this.arma = nuevaArma;
+    equiparArma(nuevaArma: Arma): void {
+        this.armaEquipada = nuevaArma;
     }
 
-    recibirDanio(danio: number): void {
-        this.vida -= danio;
-        if (this.vida < 0) this.vida = 0;
+    equiparHabilidad(nuevaHabilidad: Habilidad): void {
+        this.habilidadActiva = nuevaHabilidad;
     }
 
-    getVida(): number { return this.vida; }
-    getArmaNombre(): string { return this.arma.getNombre(); }
-    getHabilidadNombre(): string { return this.habilidad.getNombre(); }
+    recibirImpacto(danio: number): void {
+        this.vidaActual -= danio;
+        if (this.vidaActual < 0) this.vidaActual = 0;
+    }
+
+    getVida(): number { return this.vidaActual; }
+    getVidaMaxima(): number { return this.vidaMaxima; }
+    getNombreArma(): string { return this.armaEquipada.getNombre(); }
+    getNombreHabilidad(): string { return this.habilidadActiva.getNombre(); }
 }
 
-// Objetos del juego
-const espada = new Arma("Espada de fuego", 30);
-const arco = new Arma("Arco mágico", 20);
+// --- INSTANCIAS DE PRUEBA (Completamente únicas) ---
 
-const curacion = new Habilidad("Curación", 25);
-const escudo = new Habilidad("Escudo mágico", 15);
+const baculo = new Arma("Báculo Runificado", 35);
+const mandoble = new Arma("Mandoble Fénix", 45);
 
-const guerrero = new Personaje("Guerrero", 100, espada, curacion);
+const escudoEstelar = new Habilidad("Escudo Estelar", "+30 Barrera de Protección");
+const rafagaAstral = new Habilidad("Ráfaga Astral", "25 Daño de Área Elemental");
 
-// Conexión con el HTML
-const vidaVal = document.getElementById("vida")!;
-const armaVal = document.getElementById("arma")!;
-const habilidadVal = document.getElementById("habilidad")!;
-const logBox = document.getElementById("log")!;
+const heroe = new Personaje("Paladín Arcano", 100, 100, baculo, escudoEstelar);
 
-function actualizarUI(mensaje: string) {
-    vidaVal.textContent = guerrero.getVida().toString();
-    armaVal.textContent = guerrero.getArmaNombre();
-    habilidadVal.textContent = guerrero.getHabilidadNombre();
-    logBox.innerHTML = mensaje + "<br>" + logBox.innerHTML;
+// --- VINCULACIÓN CON EL DOM ---
+
+const vidaText = document.getElementById("vida")!;
+const hpBarFill = document.getElementById("hp-bar")!;
+const armaText = document.getElementById("arma")!;
+const habilidadText = document.getElementById("habilidad")!;
+const logTerminal = document.getElementById("log")!;
+
+function refrescarPantalla(mensaje: string) {
+    // 1. Textos
+    vidaText.textContent = heroe.getVida().toString();
+    armaText.textContent = heroe.getNombreArma();
+    habilidadText.textContent = heroe.getNombreHabilidad();
+
+    // 2. Barra de HP
+    const porcentaje = (heroe.getVida() / heroe.getVidaMaxima()) * 100;
+    hpBarFill.style.width = `${porcentaje}%`;
+
+    // 3. Log
+    logTerminal.innerHTML = `> ${mensaje}<br>` + logTerminal.innerHTML;
 }
 
-// Botones de acción
+// --- LISTENERS DE INTERACCIÓN ---
+
+let tieneMandoble = false;
+let tieneRafaga = false;
+
 document.getElementById("btn-atacar")?.addEventListener("click", () => {
-    actualizarUI(guerrero.atacar());
+    refrescarPantalla(heroe.atacar());
 });
 
 document.getElementById("btn-habilidad")?.addEventListener("click", () => {
-    actualizarUI(guerrero.usarHabilidad());
+    refrescarPantalla(heroe.usarHabilidad());
 });
 
-let usandoArco = false;
-document.getElementById("btn-cambiar")?.addEventListener("click", () => {
-    usandoArco = !usandoArco;
-    const nuevaArma = usandoArco ? arco : espada;
-    guerrero.cambiarArma(nuevaArma);
-    actualizarUI(`🔄 El personaje cambió su arma a: ${nuevaArma.getNombre()}`);
+document.getElementById("btn-cambiar-arma")?.addEventListener("click", () => {
+    tieneMandoble = !tieneMandoble;
+    const nuevaArma = tieneMandoble ? mandoble : baculo;
+    heroe.equiparArma(nuevaArma);
+    refrescarPantalla(`Equipamiento cambiado a: ${nuevaArma.getNombre()}`);
 });
 
-actualizarUI("Juego inicializado correctamente.");
+document.getElementById("btn-cambiar-hab")?.addEventListener("click", () => {
+    tieneRafaga = !tieneRafaga;
+    const nuevaHab = tieneRafaga ? rafagaAstral : escudoEstelar;
+    heroe.equiparHabilidad(nuevaHab);
+    refrescarPantalla(`Habilidad cambiada a: ${nuevaHab.getNombre()}`);
+});
+
+document.getElementById("btn-recibir-danio")?.addEventListener("click", () => {
+    heroe.recibirImpacto(20);
+    refrescarPantalla(`El héroe recibió un impacto de 20 de daño. HP restante: ${heroe.getVida()}`);
+});
+
+// Inicio
+refrescarPantalla("Paladín listo para la batalla.");

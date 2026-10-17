@@ -3,65 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG - TP TypeScript</title>
+    <title>Panel de Batalla - Héroe Arcano</title>
     <style>
+        :root {
+            --bg-color: #0d0e15;
+            --panel-bg: #161824;
+            --accent-glow: #7c3aed;
+            --text-color: #f1f5f9;
+            --btn-atacar: #2563eb;
+            --btn-habilidad: #9333ea;
+            --btn-arma: #059669;
+            --btn-hab: #d97706;
+            --btn-danio: #dc2626;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
-            color: #fff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
         }
-        .card {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 10px;
-            width: 320px;
+
+        .dashboard-card {
+            background-color: var(--panel-bg);
+            border: 1px solid #2e3248;
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.25);
+            border-radius: 20px;
+            padding: 28px;
+            width: 440px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        button {
-            background-color: #6200ee;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            cursor: pointer;
+
+        .header-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #a78bfa;
+            margin-bottom: 15px;
+        }
+
+        .hero-avatar {
+            font-size: 4.5em;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(37, 99, 235, 0.15));
+            border: 1px dashed #4c1d95;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stats-panel {
+            background-color: #0f111a;
+            border: 1px solid #1e2235;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .hp-bar-bg {
             width: 100%;
-            font-weight: bold;
+            background-color: #262a3d;
+            height: 12px;
+            border-radius: 6px;
+            margin-top: 6px;
+            overflow: hidden;
         }
-        button:hover { background-color: #7b1fa2; }
-        .log {
-            margin-top: 15px;
-            background: #000;
-            padding: 10px;
-            border-radius: 5px;
-            height: 70px;
+
+        .hp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f87171);
+            width: 100%;
+            transition: width 0.4s ease-out;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+        .btn-action-main { background-color: var(--btn-atacar); grid-column: span 2; }
+        .btn-skill-main { background-color: var(--btn-habilidad); }
+        .btn-swap-weapon { background-color: var(--btn-arma); }
+        .btn-swap-skill { background-color: var(--btn-hab); }
+        .btn-take-damage { background-color: var(--btn-danio); grid-column: span 2; }
+
+        .terminal-log {
+            background-color: #07080c;
+            color: #38bdf8;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            padding: 12px;
+            border-radius: 10px;
+            height: 110px;
             overflow-y: auto;
             text-align: left;
-            font-size: 0.85rem;
-            color: #03dac6;
+            font-size: 0.82em;
+            border: 1px solid #1e293b;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2 id="nombre-pj">Guerrero</h2>
-        <p>❤️ Vida: <span id="vida">100</span></p>
-        <p>⚔️ Arma: <span id="arma">Espada de fuego</span></p>
-        <p>✨ Habilidad: <span id="habilidad">Curación</span></p>
+    <div class="dashboard-card">
+        <div class="header-title">🛡️ Paladín Arcano</div>
+        
+        <div class="hero-avatar">
+            🧙‍♂️🔮
+        </div>
 
-        <button id="btn-atacar">Atacar</button>
-        <button id="btn-habilidad">Usar Habilidad</button>
-        <button id="btn-cambiar">Cambiar Arma (Arco)</button>
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span>Equipamiento: <strong id="arma" style="color: #34d399;">Báculo Runificado</strong></span>
+            </div>
+            <div class="stat-item">
+                <span>Habilidad: <strong id="habilidad" style="color: #c084fc;">Escudo Estelar</strong></span>
+            </div>
+            <div class="stat-item" style="flex-direction: column; align-items: flex-start;">
+                <span>Salud Vital: <strong id="vida">100</strong> / 100 HP</span>
+                <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="hp-bar"></div>
+                </div>
+            </div>
+        </div>
 
-        <div class="log" id="log">Juego listo...</div>
+        <div class="controls-grid">
+            <button class="btn-action-main" id="btn-atacar">Ejecutar Ataque</button>
+            <button class="btn-skill-main" id="btn-habilidad">Lanzar Habilidad</button>
+            <button class="btn-swap-weapon" id="btn-cambiar-arma">Alternar Arma</button>
+            <button class="btn-swap-skill" id="btn-cambiar-hab">Alternar Habilidad</button>
+            <button class="btn-take-damage" id="btn-recibir-danio">Recibir Impacto</button>
+        </div>
+
+        <div class="terminal-log" id="log">
+            [SISTEMA]: Entorno de batalla inicializado correctamente...
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>
